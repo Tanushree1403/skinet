@@ -10,12 +10,11 @@ using Core.Interfaces;
 using Core.Specifications;
 using API.DTOs;
 using AutoMapper;
+using API.Errors;
 
 namespace API.Controllers
 {
-    [ApiController]
-    [Route("api/[controller]")]
-    public class ProductsController: ControllerBase
+    public class ProductsController: BaseApiController
     {
    
         private readonly IGenericRepository<Products> _productsRepo;
@@ -42,9 +41,12 @@ namespace API.Controllers
         }
 
         [HttpGet("{id}")]
+        [ProducesResponseType(200)] //tells swagger that this controller can return 200 and
+        [ProducesResponseType(typeof(ApiResponse), 404)] //404 status code.
         public async Task<ActionResult<ProductToReturnDTO>> GetProduct(int id){
             var spec= new ProductsWithTypesAndBrandsSpecification(id);
             var product=await _productsRepo.GetEntityWithSpec(spec);
+            if(product==null) return NotFound(new ApiResponse(404));
             return _mapper.Map<Products, ProductToReturnDTO>(product);
         }
 
